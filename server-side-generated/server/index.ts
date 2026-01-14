@@ -17,11 +17,7 @@ app.use(cors({ origin: "http://localhost:5174" })); // Your React dev server
 app.use(express.json());
 
 const base32 = new ScureBase32Plugin();
-const totpOptions = {
-  crypto: new NobleCryptoPlugin(),
-  base32,
-  guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
-};
+const totpOptions = { guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }) };
 
 function isValidBase32(str: string) {
   try {
@@ -39,7 +35,7 @@ app.post("/api/totp", async (req: Request, res: Response) => {
     const secretB32 = isValidBase32(secret)
       ? secret
       : base32.encode(stringToBytes(secret));
-    const totp = await generate({ secret: secretB32 });
+    const totp = await generate({ ...totpOptions, secret: secretB32 });
     res.json({ totp });
   } catch (error) {
     res.status(500).json({ error });
@@ -57,7 +53,7 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
   const secretB32 = isValidBase32(secret)
     ? secret
     : base32.encode(stringToBytes(secret));
-  const isValid = await verify({ token, secret: secretB32 });
+  const isValid = await verify({ ...totpOptions, token, secret: secretB32 });
 
   if (isValid) {
     res.json({ success: true, message: "TOTP verified!" });
