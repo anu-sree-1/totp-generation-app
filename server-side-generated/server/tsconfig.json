@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs", // Change from "nodenext"
+    "target": "esnext", // Keep - modern JS features
+    "moduleResolution": "node", // Add this for Node.js imports
+    "strict": true, // Keep - good type safety
+    "sourceMap": true, // Keep - debugging
+    "esModuleInterop": true, // Add - smooth CommonJS/ESM interop
+    "skipLibCheck": true, // Keep - faster compilation
+    "isolatedModules": true // Keep - ts-node requirement
+  }
+}
