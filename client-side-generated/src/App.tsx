@@ -10,17 +10,18 @@ import {
 import { useState } from "react";
 import "./App.css";
 
-  const base32 = new ScureBase32Plugin();
-  const totpOptions = {
-    crypto: new NobleCryptoPlugin(),
-    base32,
-    guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
-  };
+const base32 = new ScureBase32Plugin();
+const totpOptions = {
+  crypto: new NobleCryptoPlugin(),
+  base32,
+  guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
+};
 
 const App = () => {
   const [secret, setSecret] = useState("");
   const [otp, setOtp] = useState("");
-  const [isValid, setIsValid] = useState(false);
+  const [isValid, setIsValid] = useState<boolean | null>(null);
+  const [error, setError] = useState("");
 
   function isValidBase32(str: string) {
     try {
@@ -31,7 +32,31 @@ const App = () => {
     }
   }
 
+  const validateSecret = (str: string) => {
+    const illegalCharRegex = /[A-Z2-7]/;
+    const trimmed = str.trim();
+
+    if (!illegalCharRegex.test(trimmed)) {
+      setError("Key value has illegal character");
+      throw new Error("Key value has illegal character");
+    }
+
+    if (trimmed.length < 16) {
+      setError("Key too short (min 16 chars)");
+      throw new Error("Key too short (min 16 chars)");
+    }
+
+    if (trimmed.length > 64) {
+      setError("Key too long (max 64 chars)");
+      throw new Error("Key too long (max 64 chars)");
+    }
+
+    setError("");
+  };
+
   const generateTotp = async () => {
+    validateSecret(secret);
+
     const secretB32 = isValidBase32(secret)
       ? secret
       : base32.encode(stringToBytes(secret));
@@ -63,6 +88,7 @@ const App = () => {
           onChange={(e) => setSecret(e.target.value)}
           placeholder="Enter your secret key"
         />
+        {error && <p style={{ marginTop: "2px", color: "red" }}>{error}</p>}
       </div>
 
       <button onClick={generateTotp}>✨ Generate TOTP</button>
@@ -78,9 +104,11 @@ const App = () => {
         <button onClick={verifyOtp}>✅ Verify</button>
       </div>
 
-      <div className={isValid ? "status valid" : "status invalid"}>
-        Valid: {isValid ? "Yes ✨" : "No ❌"}
-      </div>
+      {isValid !== null && (
+        <div className={isValid ? "status valid" : "status invalid"}>
+          Valid: {isValid ? "Yes ✨" : "No ❌"}
+        </div>
+      )}
     </div>
   );
 };
