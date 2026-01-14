@@ -1,15 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { generate, getRemainingTime, verify } from "@otplib/totp";
-import { WebCryptoPlugin } from "@otplib/plugin-crypto-web";
-import { ScureBase32Plugin } from "@otplib/plugin-base32-scure";
-import { createGuardrails, stringToBytes } from "@otplib/core";
+import { stringToBytes } from "@otplib/core";
+import { getRemainingTime } from "@otplib/totp";
+import {
+  NobleCryptoPlugin,
+  ScureBase32Plugin,
+  createGuardrails,
+  generate,
+  verify,
+} from "otplib";
+import { useState } from "react";
+import "./App.css";
 
-const base32 = new ScureBase32Plugin();
-const totpOptions = {
-  crypto: new WebCryptoPlugin(),
-  guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
-  base32,
-};
+  const base32 = new ScureBase32Plugin();
+  const totpOptions = {
+    crypto: new NobleCryptoPlugin(),
+    base32,
+    guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
+  };
 
 const App = () => {
   const [secret, setSecret] = useState("");
@@ -26,39 +32,55 @@ const App = () => {
   }
 
   const generateTotp = async () => {
-    const secretBuffer = isValidBase32(secret)
-      ? base32.decode(secret)
-      : stringToBytes(secret);
+    const secretB32 = isValidBase32(secret)
+      ? secret
+      : base32.encode(stringToBytes(secret));
 
-    const token = await generate({ ...totpOptions, secret: secretBuffer });
+    const token = await generate({ ...totpOptions, secret: secretB32 });
     const time = getRemainingTime();
     setOtp(token);
   };
 
-  // const verifyOtp = async () => {
-  //   const result = await verify({ secret, token: otp });
-  //   setIsValid(result.valid);
-  // };
+  const verifyOtp = async () => {
+    const secretB32 = isValidBase32(secret)
+      ? secret
+      : base32.encode(stringToBytes(secret));
+    const result = await verify({
+      ...totpOptions,
+      secret: secretB32,
+      token: otp,
+    });
+    setIsValid(result.valid);
+  };
 
   return (
-    <div>
-      <input
-        value={secret}
-        onChange={(e) => setSecret(e.target.value)}
-        placeholder="Enter Secret"
-      />
-      <button onClick={generateTotp}>Get TOTP</button>
+    <div className="App">
+      <h1>🔐 TOTP Generator</h1>
 
-      <br />
+      <div className="input-group">
+        <input
+          value={secret}
+          onChange={(e) => setSecret(e.target.value)}
+          placeholder="Enter your secret key"
+        />
+      </div>
 
-      {/* <p>Current OTP: {otp}</p>
-      <input
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-        placeholder="Enter OTP"
-      />
-      <button onClick={verifyOtp}>Verify</button>
-      <p>Valid: {isValid ? "Yes" : "No"}</p> */}
+      <button onClick={generateTotp}>✨ Generate TOTP</button>
+
+      <div className="otp-display">{otp || "---"}</div>
+
+      <div className="input-group">
+        <input
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+          placeholder="Enter OTP to verify"
+        />
+        <button onClick={verifyOtp}>✅ Verify</button>
+      </div>
+
+      <div className={isValid ? "status valid" : "status invalid"}>
+        Valid: {isValid ? "Yes ✨" : "No ❌"}
+      </div>
     </div>
   );
 };

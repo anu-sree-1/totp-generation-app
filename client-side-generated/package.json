@@ -17,7 +17,7 @@
     "@otplib/plugin-base32-scure": "^13.1.1",
     "@otplib/plugin-crypto-web": "^13.1.1",
     "@otplib/totp": "^13.1.1",
-    "base32-decode": "^1.0.0",
+    "otplib": "^13.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
