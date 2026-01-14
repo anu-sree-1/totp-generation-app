@@ -1,26 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { generateSecret, generate, verify } from "otplib";
-import { base32 } from "otplib/utils";
+import { generate, getRemainingTime, verify } from "@otplib/totp";
+import { WebCryptoPlugin } from "@otplib/plugin-crypto-web";
+import { ScureBase32Plugin } from "@otplib/plugin-base32-scure";
+import { createGuardrails, stringToBytes } from "@otplib/core";
 
-// Disable strict Base32 validation
-base32.setDecoder((str: string) => Buffer.from(str, "utf8"));
+const base32 = new ScureBase32Plugin();
+const totpOptions = {
+  crypto: new WebCryptoPlugin(),
+  guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
+  base32,
+};
 
 const App = () => {
   const [secret, setSecret] = useState("");
   const [otp, setOtp] = useState("");
   const [isValid, setIsValid] = useState(false);
 
+  function isValidBase32(str: string) {
+    try {
+      base32.decode(str);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
   const generateTotp = async () => {
-    console.log("🚀 ~ generateTotp ~ secret:", secret);
-    const token = await generate({ secret });
-    console.log("🚀 ~ generateTotp ~ token:", token);
+    const secretBuffer = isValidBase32(secret)
+      ? base32.decode(secret)
+      : stringToBytes(secret);
+
+    const token = await generate({ ...totpOptions, secret: secretBuffer });
+    const time = getRemainingTime();
     setOtp(token);
   };
 
-  const verifyOtp = async () => {
-    const result = await verify({ secret, token: otp });
-    setIsValid(result.valid);
-  };
+  // const verifyOtp = async () => {
+  //   const result = await verify({ secret, token: otp });
+  //   setIsValid(result.valid);
+  // };
 
   return (
     <div>
@@ -33,14 +51,14 @@ const App = () => {
 
       <br />
 
-      <p>Current OTP: {otp}</p>
+      {/* <p>Current OTP: {otp}</p>
       <input
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
         placeholder="Enter OTP"
       />
       <button onClick={verifyOtp}>Verify</button>
-      <p>Valid: {isValid ? "Yes" : "No"}</p>
+      <p>Valid: {isValid ? "Yes" : "No"}</p> */}
     </div>
   );
 };

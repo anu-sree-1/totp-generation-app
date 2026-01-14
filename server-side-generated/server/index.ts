@@ -11,11 +11,14 @@ app.use(express.json());
 // 1. Generate totp
 app.post("/api/totp", async (req: Request, res: Response) => {
   try {
-    console.log("==", req.body);
+    console.log("🚀 ~ req.body.secret:", req.body.secret);
+    // const encodedsecret = authenticator.encode(req.body.secret);
+    // console.log("🚀 ~ encodedsecret:", encodedsecret);
     const totp = await generate({ secret: req.body.secret });
-    console.log("🚀 ~ totp:", totp)
+    console.log("🚀 ~ totp:", totp);
     res.json({ totp });
   } catch (error) {
+    console.log("🚀 ~ error:", error);
     res.status(500).json({ error });
   }
 });
