@@ -1,12 +1,13 @@
 {
-  "name": "test-project",
+  "name": "client-side-generated",
   "version": "1.0.0",
   "main": "src/index.tsx",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "gh-pages": "^6.3.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
