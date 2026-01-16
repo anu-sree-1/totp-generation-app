@@ -1,22 +1,6 @@
-import { stringToBytes } from "@otplib/core";
-import { getRemainingTime } from "@otplib/totp";
-import {
-  NobleCryptoPlugin,
-  ScureBase32Plugin,
-  createGuardrails,
-  generate,
-  verify,
-} from "otplib";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
-
-const base32 = new ScureBase32Plugin();
-
-const totpOptions = {
-  crypto: new NobleCryptoPlugin(),
-  base32,
-  guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }),
-};
+import { startTotpTimer, verifyOtp } from "./utils";
 
 const App = () => {
   const [secret, setSecret] = useState("");
@@ -26,75 +10,6 @@ const App = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  function isValidBase32(str: string) {
-    try {
-      base32.decode(str);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  const validateSecret = (str: string) => {
-    const base32Regex = /^[A-Z2-7]+$/;
-    const trimmed = str.trim();
-
-    if (!base32Regex.test(trimmed)) {
-      setError("Key value has illegal character");
-      throw new Error("Key value has illegal character");
-    }
-
-    if (trimmed.length < 16) {
-      setError("Key too short (min 16 chars)");
-      throw new Error("Key too short (min 16 chars)");
-    }
-
-    if (trimmed.length > 64) {
-      setError("Key too long (max 64 chars)");
-      throw new Error("Key too long (max 64 chars)");
-    }
-
-    setError("");
-  };
-
-  const getSecretBase32 = () =>
-    isValidBase32(secret) ? secret : base32.encode(stringToBytes(secret));
-
-  const generateToken = async () => {
-    const token = await generate({
-      ...totpOptions,
-      secret: getSecretBase32(),
-    });
-    setOtp(token);
-  };
-
-  const startTotpTimer = async () => {
-    validateSecret(secret);
-
-    await generateToken();
-    setTimeLeft(getRemainingTime());
-
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    timerRef.current = setInterval(async () => {
-      const remaining = getRemainingTime();
-      setTimeLeft(remaining);
-
-      if (remaining === 30) {
-        await generateToken(); // auto-regenerate every 30s
-      }
-    }, 1000);
-  };
-
-  const verifyOtp = async () => {
-    const result = await verify({
-      ...totpOptions,
-      secret: getSecretBase32(),
-      token: otp,
-    });
-    setIsValid(result.valid);
-  };
 
   // Cleanup on unmount
   useEffect(() => {
@@ -116,7 +31,13 @@ const App = () => {
         {error && <p style={{ marginTop: "2px", color: "red" }}>{error}</p>}
       </div>
 
-      <button onClick={startTotpTimer}>Generate TOTP</button>
+      <button
+        onClick={() =>
+          startTotpTimer(secret, setError, setOtp, setTimeLeft, timerRef)
+        }
+      >
+        Generate TOTP
+      </button>
 
       <div className="otp-display">{otp || "---"}</div>
 
@@ -132,7 +53,7 @@ const App = () => {
           onChange={(e) => setOtp(e.target.value)}
           placeholder="Enter OTP to verify"
         />
-        <button onClick={verifyOtp}>Verify</button>
+        <button onClick={()=>verifyOtp(setIsValid, secret, otp)}>Verify</button>
       </div>
 
       {isValid !== null && (
