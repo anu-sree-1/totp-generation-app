@@ -28,14 +28,22 @@ function isValidBase32(str: string) {
   }
 }
 
+// normalise secret to match older g-auth totps
+function normaliseCharset(input: string) {
+  return input
+    .toUpperCase()
+    .replace(/ /g, "") // Remove spaces
+    .replace(/1/g, "I") // Replace '1' with 'I' (capital i)
+    .replace(/0/g, "O"); // Replace '0' with 'O' (capital o)
+}
+
 // 1. Generate totp
 app.post("/api/totp", async (req: Request, res: Response) => {
   try {
-    const secret = req.body.secret;
-    const secretB32 = isValidBase32(secret)
-      ? secret
-      : base32.encode(stringToBytes(secret));
-    const totp = await generate({ ...totpOptions, secret: secretB32 });
+    const totp = await generate({
+      ...totpOptions,
+      secret: normaliseCharset(req.body.secret),
+    });
     res.json({ totp });
   } catch (error) {
     res.status(500).json({ error });
