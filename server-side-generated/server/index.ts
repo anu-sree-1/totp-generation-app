@@ -9,11 +9,13 @@ import {
 } from "otplib";
 import { stringToBytes } from "@otplib/core";
 import { getRemainingTime } from "@otplib/totp";
+import path from "node:path";
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors({ origin: "http://localhost:5174" })); // Your React dev server
+app.use(express.static(path.resolve(__dirname, "../client/dist")));
 app.use(express.json());
 
 const base32 = new ScureBase32Plugin();
@@ -73,3 +75,6 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`TOTP Server running at http://localhost:${PORT}`);
 });
+
+export const config = { maxDuration: 30 };
+module.exports = app;
