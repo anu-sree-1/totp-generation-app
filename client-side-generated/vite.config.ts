@@ -4,5 +4,5 @@
 
   export default defineConfig({
     plugins: [react()],
-    base: '/totp-generation-app/',
+    base: '/totp-generation-app/client-side-generated/',
   })
