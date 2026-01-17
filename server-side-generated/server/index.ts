@@ -58,6 +58,3 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`TOTP Server running at http://localhost:${PORT}`);
 });
-
-export const config = { maxDuration: 30 };
-export default app;
