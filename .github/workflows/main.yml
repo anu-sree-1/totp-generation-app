@@ -25,6 +25,10 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install dependencies
+        working-directory: client-side-generated
+        run: npm ci
+
       - name: Build
         working-directory: client-side-generated
         run: npm run build
