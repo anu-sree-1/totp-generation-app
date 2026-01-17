@@ -76,5 +76,5 @@ app.listen(PORT, () => {
   console.log(`TOTP Server running at http://localhost:${PORT}`);
 });
 
-export const config = { maxDuration: 30 };
-module.exports = app;
+// export const config = { maxDuration: 30 };
+// module.exports = app;
