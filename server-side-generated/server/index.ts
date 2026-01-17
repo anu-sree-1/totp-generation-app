@@ -75,4 +75,4 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
 // });
 
 export const config = { maxDuration: 30 };
-module.exports = app;
+export default app;
