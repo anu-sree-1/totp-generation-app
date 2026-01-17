@@ -1,4 +1,4 @@
-website: https://anu-sree-1.github.io/totp-generation-app/
+website: https://anu-sree-1.github.io/totp-generation-app/client-side-generated
 
 demo:
 
