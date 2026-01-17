@@ -1,13 +1,7 @@
-import express, { Request, Response } from "express";
 import cors from "cors";
-import {
-  generate,
-  ScureBase32Plugin,
-  createGuardrails,
-  verify,
-} from "otplib";
-import { stringToBytes } from "@otplib/core";
+import express, { Request, Response } from "express";
 import path from "node:path";
+import { createGuardrails, generate, verify } from "otplib";
 
 const app = express();
 const PORT = 3001;
@@ -16,17 +10,7 @@ app.use(cors({ origin: "http://localhost:5174" })); // Your React dev server
 app.use(express.static(path.resolve(__dirname, "../client/dist")));
 app.use(express.json());
 
-const base32 = new ScureBase32Plugin();
 const totpOptions = { guardrails: createGuardrails({ MIN_SECRET_BYTES: 10 }) };
-
-function isValidBase32(str: string) {
-  try {
-    base32.decode(str);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
 
 // normalise secret to match older g-auth totps
 function normaliseCharset(input: string) {
@@ -58,10 +42,11 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Token and secret required" });
   }
 
-  const secretB32 = isValidBase32(secret)
-    ? secret
-    : base32.encode(stringToBytes(secret));
-  const isValid = await verify({ ...totpOptions, token, secret: secretB32 });
+  const isValid = await verify({
+    ...totpOptions,
+    token,
+    secret: normaliseCharset(secret),
+  });
 
   if (isValid) {
     res.json({ success: true, message: "TOTP verified!" });
@@ -70,9 +55,9 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
   }
 });
 
-// app.listen(PORT, () => {
-//   console.log(`TOTP Server running at http://localhost:${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`TOTP Server running at http://localhost:${PORT}`);
+});
 
 export const config = { maxDuration: 30 };
 export default app;
