@@ -2,13 +2,11 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import {
   generate,
-  NobleCryptoPlugin,
   ScureBase32Plugin,
   createGuardrails,
   verify,
 } from "otplib";
 import { stringToBytes } from "@otplib/core";
-import { getRemainingTime } from "@otplib/totp";
 import path from "node:path";
 
 const app = express();
@@ -72,9 +70,9 @@ app.post("/api/totp/verify", async (req: Request, res: Response) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`TOTP Server running at http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`TOTP Server running at http://localhost:${PORT}`);
+// });
 
-// export const config = { maxDuration: 30 };
-// module.exports = app;
+export const config = { maxDuration: 30 };
+module.exports = app;
