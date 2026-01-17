@@ -33,10 +33,15 @@ jobs:
         working-directory: client-side-generated
         run: npm run build
 
+      - name: Prepare site
+        run: |
+          mkdir site
+          mv client-side-generated/dist site/client-side-generated
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: client-side-generated/dist
+          path: site
 
   deploy:
     needs: build
